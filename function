@@ -1,0 +1,58 @@
+err_msg() {
+	# 引数の確認
+	[ $# = 2 ] || { echo "The number of arguments was wrong."; exit 9; }
+
+	# 変数の定義
+	local _PROG="$1"
+	local _MSG="$2"
+
+	# メッセージの出力
+	echo "$_PROG: ERR: $_MSG"
+}
+
+char_type() {
+	# 引数の確認
+	[ $# = 0 ] &&\
+		 { err_msg "char_type" "The number of arguments was wrong"; exit 9; } 
+
+	# 文字列判定
+	echo "$1" | grep -q "^[0-9]*$" && return 1
+	echo "$1" | grep -q "^[a-z]*$" && return 2
+	echo "$1" | grep -q "^[A-Z]*$" && return 3
+	echo "$1" | grep -q "^[a-zA-Z]*$" && return 4
+ 	echo "$1" | grep -q "^[0-9a-zA-Z]*$" && return 5
+	return 0
+}
+
+arg_nums() {
+	# 引数の確認
+	[ $# -ge 3 ] ||\
+		 { err_msg "arg_nums" "The number of arguments was wrong"; exit 9; }
+
+	# 変数の定義
+	local _ARG=
+	local _COPR_OPRT=$1
+	local _COPR_NUM=$2
+
+	# オペランドの確認
+	case $_COPR_OPRT in
+		-lt|-le|-ne|-eq|-ge|-gt)
+			: ;;
+		*)
+			err_msg "arg_nums" "Comparison operator not found."
+			exit 9 ;;
+	esac
+
+	# 変数の確認
+	char_type $_COPR_NUM
+	if [ $? -ne 1 ]; then
+		err_msg "arg_nums" "Comparison number not found."
+		exit 9
+	fi
+	shift 2
+	if [ "$#" "$_COPR_OPRT" "$_COPR_NUM" ]; then
+		return 0
+	else
+		return 1
+	fi
+}
